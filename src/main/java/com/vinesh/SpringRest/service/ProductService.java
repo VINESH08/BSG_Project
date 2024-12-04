@@ -6,7 +6,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.vinesh.SpringRest.model.Category;
 import com.vinesh.SpringRest.model.Product;
+import com.vinesh.SpringRest.model.SubCategory;
 import com.vinesh.SpringRest.repository.ProductRepositry;
 
 @Service
@@ -37,4 +39,12 @@ public class ProductService {
     public void delete(long id) {
         productRepositry.deleteById(id);
     }
+
+    // public Optional<Product> findByNameAndCategoryAndSubCategory(String name,
+    // Category category,
+    // SubCategory subCategory) {
+    // return productRepositry.findByPnameAndCategoryAndSubCategory(name, category,
+    // subCategory);
+    // }
+
 }

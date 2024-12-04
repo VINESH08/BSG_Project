@@ -7,7 +7,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -15,16 +17,19 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long id;
-    @Column(nullable = false)
+
     private String p_name;
-    @Column(nullable = false)
-    private Double p_price;
-    @Column(nullable = false)
+
+    private Integer p_price;
+
     private Double p_weight;
+    private Integer p_stock;
     @ManyToOne
     @JoinColumn(name = "category_id", referencedColumnName = "id", nullable = true)
     private Category category;

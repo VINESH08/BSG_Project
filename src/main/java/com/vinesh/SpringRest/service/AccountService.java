@@ -51,7 +51,7 @@ public class AccountService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Optional<Account> optionalaccount = accountRepositry.findByEmail(email);
-        if (!optionalaccount.isPresent()) {
+        if (optionalaccount.isEmpty()) {
             throw new UsernameNotFoundException("User Not Found");
         }
         Account account = optionalaccount.get();

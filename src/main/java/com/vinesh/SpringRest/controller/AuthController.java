@@ -113,6 +113,7 @@ public class AuthController {
             Account account = optionalaccount.get();
             account.setAuthrorities(authoritiesDTO.getAuthorities());
             accountService.save(account);
+
             AccountViewDTO accountViewDTO = new AccountViewDTO(account.getId(), account.getEmail(),
                     account.getAuthrorities());
             return ResponseEntity.ok(accountViewDTO);
@@ -165,4 +166,6 @@ public class AuthController {
         return new ResponseEntity<String>("User Not Found!", HttpStatus.BAD_REQUEST);
 
     }
+    // ------------------------------------------------------------------------------------------------------------
+
 }

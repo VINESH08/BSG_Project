@@ -11,9 +11,9 @@ import lombok.Setter;
 @Setter
 public class UserLoginDTO {
     @Email
-    @Schema(description = "Email address", example = "abc@gmail.com", requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Email address", example = "cheekacheeky83@gmail.com", requiredMode = RequiredMode.REQUIRED)
     private String email;
     @Size(min = 6, max = 20)
-    @Schema(description = "Password", example = "password", requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Password", example = "poobowler", requiredMode = RequiredMode.REQUIRED)
     private String password;
 }

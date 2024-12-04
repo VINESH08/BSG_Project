@@ -30,7 +30,6 @@ import java.io.File;
 import org.springframework.http.HttpHeaders;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -159,7 +158,7 @@ public class AlbumController {
                     String final_photo_name = generatedString + fileName;
                     String absolute_fileLocation = AppUtil.getPhotoUploadPath(final_photo_name, PHOTOS_FOLDER_NAME,
                             album_id);
-                    Path path = Paths.get(absolute_fileLocation);
+                    Path path = Path.of(absolute_fileLocation);
                     Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
                     Photo photo = new Photo();
                     photo.setName(fileName);
@@ -196,8 +195,8 @@ public class AlbumController {
 
     @GetMapping("/{album_id}/photos/{photo_id}/download-photo")
     @SecurityRequirement(name = "Vinesh-demo-api")
-    public ResponseEntity<?> downloadphoto(@PathVariable("album_id") long album_id,
-            @PathVariable("photo_id") long photo_id, Authentication authentication) {
+    public ResponseEntity<?> downloadphoto(@PathVariable long album_id,
+            @PathVariable long photo_id, Authentication authentication) {
         String email = authentication.getName();
         Optional<Account> optionalaccount = accountService.findByEmail(email);
         Account account = optionalaccount.get();

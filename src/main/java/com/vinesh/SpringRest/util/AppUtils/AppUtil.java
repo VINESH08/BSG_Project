@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import org.springframework.core.io.Resource;
@@ -17,7 +16,7 @@ public class AppUtil {
     // Updated method to use Paths and resolve the path correctly
     public static String getPhotoUploadPath(String filename, String folder_name, long albumId) throws IOException {
         // Define the base directory for uploads
-        Path uploadDir = Paths.get("src", "main", "resources", "static", "uploads", String.valueOf(albumId),
+        Path uploadDir = Path.of("src", "main", "resources", "static", "uploads", String.valueOf(albumId),
                 folder_name);
 
         // Create directories if they don't exist
@@ -38,7 +37,7 @@ public class AppUtil {
     }
 
     public static Resource getFileAsResource(String filename, String folderName, long album_id) throws IOException {
-        Path filePath = Paths.get("src", "main", "resources", "static", "uploads", String.valueOf(album_id), folderName,
+        Path filePath = Path.of("src", "main", "resources", "static", "uploads", String.valueOf(album_id), folderName,
                 filename);
 
         // Check if the file exists
@@ -51,7 +50,7 @@ public class AppUtil {
 
     public static boolean delete_photo(String filename, String folder_name, long album_id) {
         try {
-            Path filePath = Paths.get("src", "main", "resources", "static", "uploads", String.valueOf(album_id),
+            Path filePath = Path.of("src", "main", "resources", "static", "uploads", String.valueOf(album_id),
                     folder_name,
                     filename);
             File f = new File(filePath.toString());

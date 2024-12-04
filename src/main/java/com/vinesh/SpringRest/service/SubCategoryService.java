@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.vinesh.SpringRest.model.Category;
 import com.vinesh.SpringRest.model.SubCategory;
 import com.vinesh.SpringRest.repository.SubCategoryRepositry;
 
@@ -36,6 +37,10 @@ public class SubCategoryService {
 
     public List<SubCategory> findAll() {
         return subCategoryRepositry.findAll();
+    }
+
+    public Optional<SubCategory> findByNameAndCategory(String name, Category category) {
+        return subCategoryRepositry.findBySnameAndCategory(name, category);
     }
 
 }

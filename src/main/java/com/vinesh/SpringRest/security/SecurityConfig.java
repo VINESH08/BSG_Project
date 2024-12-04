@@ -35,16 +35,17 @@ public class SecurityConfig {
     private RSAKey rsaKey;
 
     @Bean
-    public JWKSource<SecurityContext> jwkSource() {
+    JWKSource<SecurityContext> jwkSource() {
         rsaKey = Jwks.generateRsa();
         JWKSet jwkSet = new JWKSet(rsaKey);
         return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     // @Bean
     // public InMemoryUserDetailsManager users() {
     // return new InMemoryUserDetailsManager(
@@ -55,7 +56,7 @@ public class SecurityConfig {
     // }
 
     @Bean
-    public AuthenticationManager authManager(UserDetailsService userDetailsService) {
+    AuthenticationManager authManager(UserDetailsService userDetailsService) {
         var authProvider = new DaoAuthenticationProvider();// Data Access Object(DAO)
         authProvider.setPasswordEncoder(passwordEncoder());
         authProvider.setUserDetailsService(userDetailsService);
@@ -76,11 +77,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/db-console/**")) // Disable CSRF
                 // for H2 console
-                .headers(headers -> headers.frameOptions().sameOrigin()) // Allow frames from
+                .headers(headers -> headers.frameOptions(options -> options.sameOrigin())) // Allow frames from
                 // same origin
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/auth/token").permitAll()
@@ -100,8 +101,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         // Additional configuration
-        http.csrf().disable(); // Disable CSRF globally if needed
-        http.headers().frameOptions().disable(); // Disable frame options globally if needed
+        http.csrf(csrf -> csrf.disable()); // Disable CSRF globally if needed
+        http.headers(headers -> headers.frameOptions(options -> options.disable())); // Disable frame options globally
+                                                                                     // if needed
 
         return http.build();
     }
