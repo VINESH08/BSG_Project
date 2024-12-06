@@ -1,9 +1,14 @@
 package com.vinesh.SpringRest.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -14,6 +19,9 @@ import com.vinesh.SpringRest.model.Category;
 import com.vinesh.SpringRest.model.SubCategory;
 import com.vinesh.SpringRest.model.Product;
 import com.vinesh.SpringRest.payload.product.ProductRequestDTO;
+import com.vinesh.SpringRest.payload.product.ProductResponseDTO;
+import com.vinesh.SpringRest.payload.product.ProductResponseDTO.ProductMapping;
+import com.vinesh.SpringRest.payload.product.ProductResponseDTO.SubCategoryMapping;
 import com.vinesh.SpringRest.service.AccountService;
 import com.vinesh.SpringRest.service.CategoryService;
 import com.vinesh.SpringRest.service.ProductService;
@@ -42,6 +50,15 @@ public class ProductController {
     @Autowired
     private SubCategoryService subCategoryService;
 
+    /*
+     * Structure of ProductRequestDTO:
+     * {
+     * “Category”:{id: Name:””},
+     * “SubCategory”:{id: , Name:”” ,category_id:” ”},
+     * “Product”:{"productName": "ABG", "price": 5000, "weight": 20.5, "stock": 14}
+     * }
+     * 
+     */
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Adding Product ")
@@ -80,25 +97,6 @@ public class ProductController {
                     }
                 }
 
-                // Optional<Product> optionalProduct = productService
-                // .findByNameAndCategoryAndSubCategory(productRequestDTO.getProductName(),
-                // category, subCategory);
-                // Product product;
-                // if (optionalProduct.isPresent()) {
-                // product = optionalProduct.get();
-                // product.setP_stock(product.getP_stock() + productRequestDTO.getStock());
-                // } else {
-                // product = new Product();
-                // product.setP_name(productRequestDTO.getProductName());
-                // product.setP_price(productRequestDTO.getPrice());
-                // product.setP_weight(productRequestDTO.getWeight());
-                // product.setP_stock(productRequestDTO.getStock());
-                // product.setCategory(category);
-                // product.setSubCategory(subCategory);
-
-                // }
-                // productService.save(product);
-                // return ResponseEntity.ok("Product Added Successfully");
                 Product product;
                 if (productRequestDTO.getProduct().getId() != null) {
                     Optional<Product> optionalproduct = productService.findByid(productRequestDTO.getProduct().getId());
@@ -115,6 +113,7 @@ public class ProductController {
                     product.setSubCategory(subCategory);
 
                 }
+                product.setAccount(account);
                 product = productService.save(product);
                 return ResponseEntity.ok("Product Added Successfully");
 
@@ -125,6 +124,100 @@ public class ProductController {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("UNAUTHORIZED accesss occured !!");
 
+    }
+
+    // Get Request.............
+    /*
+     * //ProductResponseDTO
+     * {
+     * category:[{id:0,name:”string”},{id:0,name:”string”},{id:0,name:”string”}…],
+     * 
+     * subcategory:
+     * {
+     * Cid(1 or 2 or 3..) :
+     * [{id:0,name:”string”},{id:0,name:”string”},{id:0,name:”string”}…],
+     * 
+     * Cid( 2 or 3..) :
+     * [{id:0,name:”string”},{id:0,name:”string”},{id:0,name:”string”}…],
+     * 
+     * }
+     * productMapping:
+     * {
+     * 
+     * Cid(1 or 2 or 3..):
+     * {
+     * sid(1 or 2 or 3..):[{ProductDetails},{ProductDetails},{ProductDetails}]
+     * sid( 2 or 3..):[{ProductDetails},{ProductDetails},{ProductDetails}]
+     * 
+     * }
+     * 
+     * 
+     * 
+     * }
+     * 
+     * }
+     * 
+     */
+    @GetMapping("/get")
+    @Operation(summary = "Getting All Product Details")
+    @SecurityRequirement(name = "Vinesh-demo-api")
+    public ResponseEntity<ProductResponseDTO> getProduct() {
+        try {
+            ProductResponseDTO productResponseDTO = new ProductResponseDTO();
+            // This is for Category
+            ArrayList<ProductResponseDTO.CategoryMapping> categoryList = new ArrayList<>();
+
+            for (Category cate : categoryService.findall()) {
+                ProductResponseDTO.CategoryMapping categoryMapping = new ProductResponseDTO.CategoryMapping(
+                        cate.getId(),
+                        cate.getCname());
+                categoryList.add(categoryMapping);
+            }
+            productResponseDTO.setCategory(categoryList); // Set category data
+
+            // This is for SubCategory
+            Map<Long, ArrayList<SubCategoryMapping>> map = new HashMap<>();
+
+            for (SubCategory subcate : subCategoryService.findAll()) {
+                long categoryid = subcate.getCategory().getId();
+                String subcatName = subcate.getSname();
+                long subId = subcate.getId();
+                SubCategoryMapping subCategoryMapping = new SubCategoryMapping(subId, subcatName);
+                map.computeIfAbsent(categoryid, k -> new ArrayList<>()).add(subCategoryMapping);
+            }
+            productResponseDTO.setSubcategory(map);
+
+            // This is for product
+            Map<Long, Map<Integer, ArrayList<ProductMapping>>> productMap = new HashMap<>();
+            for (Product pro : productService.findAll()) {
+                long productId = pro.getId();
+                String productName = pro.getP_name();
+                int prodcutPrice = pro.getP_price();
+                int stock = pro.getP_stock();
+                Double weight = pro.getP_weight();
+                long catId = pro.getCategory().getId();
+                long subId = pro.getSubCategory().getId();
+                ProductResponseDTO.ProductMapping productMapping = new ProductResponseDTO.ProductMapping(
+                        productId,
+                        productName,
+                        prodcutPrice,
+                        weight,
+                        stock,
+                        pro.getAccount());
+                Map<Integer, ArrayList<ProductResponseDTO.ProductMapping>> subCategoryMap = productMap.computeIfAbsent(
+                        catId,
+                        k -> new HashMap<>());
+
+                ArrayList<ProductResponseDTO.ProductMapping> productList = subCategoryMap.computeIfAbsent((int) subId,
+                        k -> new ArrayList<>());
+                productList.add(productMapping);
+            }
+            productResponseDTO.setProduct(productMap);
+            return ResponseEntity.ok(productResponseDTO);
+        } catch (Exception e) {
+            log.debug("ProductControllerError:" + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
 }

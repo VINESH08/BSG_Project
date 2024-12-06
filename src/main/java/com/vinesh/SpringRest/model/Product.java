@@ -1,6 +1,5 @@
 package com.vinesh.SpringRest.model;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -36,4 +35,7 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "subCategory_id", referencedColumnName = "id", nullable = true)
     private SubCategory subCategory;
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    private Account account;
 }
