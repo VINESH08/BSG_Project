@@ -39,7 +39,6 @@ import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
-import org.apache.catalina.connector.Response;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -53,7 +52,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/album")
