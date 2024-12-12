@@ -10,6 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AccountDTO {
+    private String name;
     @Email
     @Schema(description = "Email address", example = "abc@gmail.com", requiredMode = RequiredMode.REQUIRED)
     private String email;

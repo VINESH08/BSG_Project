@@ -17,6 +17,7 @@ public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long id;
+    private String name;
     private String email;
     private String password;
     private String Authrorities;

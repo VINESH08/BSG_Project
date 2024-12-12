@@ -1,12 +1,14 @@
 package com.vinesh.SpringRest.controller;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,13 +17,17 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vinesh.SpringRest.model.Account;
 import com.vinesh.SpringRest.payload.auth.AccountDTO;
 import com.vinesh.SpringRest.payload.auth.AccountViewDTO;
+import com.vinesh.SpringRest.payload.auth.AuthResponseDTO;
 import com.vinesh.SpringRest.payload.auth.AuthoritiesDTO;
+import com.vinesh.SpringRest.payload.auth.GoogleSignInRequest;
 import com.vinesh.SpringRest.payload.auth.PasswordDTO;
 import com.vinesh.SpringRest.payload.auth.ProfileDTO;
 import com.vinesh.SpringRest.payload.auth.TokenDTO;
@@ -30,6 +36,7 @@ import com.vinesh.SpringRest.service.AccountService;
 import com.vinesh.SpringRest.service.TokenService;
 import com.vinesh.SpringRest.util.constants.AccountError;
 import com.vinesh.SpringRest.util.constants.AccountSuccess;
+import com.vinesh.SpringRest.util.constants.Authority;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -78,6 +85,7 @@ public class AuthController {
     public ResponseEntity<String> addUsers(@Valid @RequestBody AccountDTO accountDTO) {
         try {
             Account account = new Account();
+            account.setName(accountDTO.getName());
             account.setEmail(accountDTO.getEmail());
             account.setPassword(accountDTO.getPassword());
             // account.setRole("ROLE_USER");
@@ -96,7 +104,8 @@ public class AuthController {
     public List<AccountViewDTO> Users() {
         List<AccountViewDTO> accounts = new ArrayList<>();
         for (Account account : accountService.findall()) {
-            accounts.add(new AccountViewDTO(account.getId(), account.getEmail(), account.getAuthrorities()));
+            accounts.add(new AccountViewDTO(account.getId(), account.getName(), account.getEmail(),
+                    account.getAuthrorities()));
         }
         return accounts;
     }
@@ -114,7 +123,7 @@ public class AuthController {
             account.setAuthrorities(authoritiesDTO.getAuthorities());
             accountService.save(account);
 
-            AccountViewDTO accountViewDTO = new AccountViewDTO(account.getId(), account.getEmail(),
+            AccountViewDTO accountViewDTO = new AccountViewDTO(account.getId(), account.getName(), account.getEmail(),
                     account.getAuthrorities());
             return ResponseEntity.ok(accountViewDTO);
         }
@@ -146,7 +155,7 @@ public class AuthController {
         Account account = optionalaccount.get();
         account.setPassword(passwordDTO.getPassword());
         accountService.save(account);
-        AccountViewDTO accountViewDTO = new AccountViewDTO(account.getId(), account.getEmail(),
+        AccountViewDTO accountViewDTO = new AccountViewDTO(account.getId(), account.getName(), account.getEmail(),
                 account.getAuthrorities());
         return accountViewDTO;
 
@@ -166,6 +175,32 @@ public class AuthController {
         return new ResponseEntity<String>("User Not Found!", HttpStatus.BAD_REQUEST);
 
     }
-    // ------------------------------------------------------------------------------------------------------------
 
+    // ------------------------------------------------------------------------------------------------------------
+    @PostMapping("/google")
+    public ResponseEntity<?> handleGoogleSignIn(@RequestBody GoogleSignInRequest googleSignInRequest) {
+        String email = googleSignInRequest.getEmail();
+        String name = googleSignInRequest.getName();
+        Account account;
+        Optional<Account> optionalaccount = accountService.findByEmail(email);
+        if (!optionalaccount.isPresent()) {
+            account = new Account();
+            account.setName(name);
+            account.setEmail(email);
+            account.setPassword(null);
+            account.setAuthrorities(String.valueOf(Authority.ADMIN));
+            accountService.save(account);
+        } else {
+            account = optionalaccount.get();
+        }
+        List<SimpleGrantedAuthority> authorities = Arrays.stream(account.getAuthrorities().split(","))
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(account.getEmail(), null, authorities);
+
+        String token = tokenService.generateToken(authentication);
+        return ResponseEntity.ok(new AuthResponseDTO(token, account.getName(), account.getEmail()));
+
+    }
 }

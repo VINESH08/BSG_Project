@@ -17,12 +17,12 @@ public class SeedData implements CommandLineRunner {
     public void run(String... args) throws Exception {
         Account account1 = new Account();
         Account account2 = new Account();
-
+        account1.setName("Srikanth");
         account1.setEmail("cheekacheeky83@gmail.com");
         account1.setPassword("poobowler");
         account1.setAuthrorities(Authority.ADMIN.toString());
         accountService.save(account1);
-
+        account2.setName("Vine");
         account2.setEmail("vineshraghu0809@gmail.com");
         account2.setPassword("vavin3108");
         account2.setAuthrorities(Authority.USER.toString());

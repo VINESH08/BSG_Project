@@ -25,7 +25,9 @@ public class AccountService implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
 
     public Account save(Account account) {
-        account.setPassword(passwordEncoder.encode(account.getPassword()));
+        if (account.getPassword() != null) {
+            account.setPassword(passwordEncoder.encode(account.getPassword()));
+        }
         if (account.getAuthrorities() == null) {
             account.setAuthrorities(Authority.USER.toString());
         }

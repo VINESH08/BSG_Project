@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -217,6 +218,101 @@ public class ProductController {
             log.debug("ProductControllerError:" + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
+    }
+
+    @PutMapping("/update")
+    @Operation(summary = "Update the product, subcategory, or category details")
+    @SecurityRequirement(name = "Vinesh-demo-api")
+    public ResponseEntity<String> updateProduct(@RequestBody ProductRequestDTO productRequestDTO,
+            Authentication authentication) {
+        String email = authentication.getName();
+        Optional<Account> optionalAccount = accountService.findByEmail(email);
+
+        if (optionalAccount.isPresent()) {
+            Account account = optionalAccount.get();
+            String authority = account.getAuthrorities();
+
+            if (Authority.ADMIN.name().equals(authority)) {
+                // Update Category if provided
+                Category category = null;
+                if (productRequestDTO.getCategory() != null && productRequestDTO.getCategory().getId() != null) {
+                    Optional<Category> optionalCategory = categoryService
+                            .findbyId(productRequestDTO.getCategory().getId());
+                    if (optionalCategory.isPresent()) {
+                        category = optionalCategory.get();
+                        if (productRequestDTO.getCategory().getName() != null) {
+                            category.setCname(productRequestDTO.getCategory().getName());
+                            category = categoryService.save(category);
+                        }
+                    }
+                }
+
+                // Update SubCategory if provided
+                SubCategory subCategory = null;
+                if (productRequestDTO.getSubCategory() != null) {
+                    if (productRequestDTO.getSubCategory().getId() != null) {
+                        Optional<SubCategory> optionalSubCategory = subCategoryService
+                                .findByid(productRequestDTO.getSubCategory().getId());
+                        if (optionalSubCategory.isPresent()) {
+                            subCategory = optionalSubCategory.get();
+                            if (productRequestDTO.getSubCategory().getName() != null) {
+                                subCategory.setSname(productRequestDTO.getSubCategory().getName());
+                                subCategory = subCategoryService.save(subCategory);
+                            }
+                        }
+                    } else if (productRequestDTO.getSubCategory().getName() != null) {
+                        subCategory = new SubCategory();
+                        subCategory.setSname(productRequestDTO.getSubCategory().getName());
+                        subCategory.setCategory(category);
+                        subCategory = subCategoryService.save(subCategory);
+                    }
+                }
+
+                // Update Product if provided
+                Product product = null;
+                if (productRequestDTO.getProduct() != null) {
+                    if (productRequestDTO.getProduct().getId() != null) {
+                        Optional<Product> optionalProduct = productService
+                                .findByid(productRequestDTO.getProduct().getId());
+                        if (optionalProduct.isPresent()) {
+                            product = optionalProduct.get();
+                            if (productRequestDTO.getProduct().getProduct_stock() != 0) {
+                                product.setP_stock(
+                                        product.getP_stock() + productRequestDTO.getProduct().getProduct_stock());
+                            }
+                            if (productRequestDTO.getProduct().getProduct_price() != 0) {
+                                product.setP_price(productRequestDTO.getProduct().getProduct_price());
+                            }
+                            if (productRequestDTO.getProduct().getProduct_weight() != 0) {
+                                product.setP_weight(productRequestDTO.getProduct().getProduct_weight());
+                            }
+                        }
+                    } else if (productRequestDTO.getProduct().getProduct_name() != null) {
+                        product = new Product();
+                        product.setP_name(productRequestDTO.getProduct().getProduct_name());
+                        product.setP_price(productRequestDTO.getProduct().getProduct_price());
+                        product.setP_weight(productRequestDTO.getProduct().getProduct_weight());
+                        product.setP_stock(productRequestDTO.getProduct().getProduct_stock());
+                        product.setCategory(category);
+                        product.setSubCategory(subCategory);
+                    }
+                }
+
+                // Save product if updated or newly created
+                if (product != null) {
+                    product.setAccount(account);
+                    productService.save(product);
+                    return ResponseEntity.ok("Product/SubCategory/Category updated successfully");
+                }
+
+                // If only the category was updated
+                if (category != null) {
+                    return ResponseEntity.ok("Category updated successfully");
+                }
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized or Invalid Input");
     }
 
 }

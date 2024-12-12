@@ -1,5 +1,7 @@
 package com.vinesh.SpringRest.payload.auth;
 
+import com.vinesh.SpringRest.model.Account;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,11 +9,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class AccountViewDTO {
-    private long id;
+@AllArgsConstructor
+public class AuthResponseDTO {
+    private String token;
     private String name;
     private String email;
-    private String authorities;
+
 }
